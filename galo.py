@@ -17,7 +17,7 @@ def tablestatus():
             return
        if table[1][e] == table[2][e] and table[1][e] == table[3][e] and table[e][1] != -1:
             #print win
-            return 
+            return
    if table[1][1] == table[2][2] and table[1][1] == table[3][3] and table[e][1] != -1:
         return
    if table[3][1] == table[2][2] and table[3][1] == table[1][3] and table[e][1] != -1:
