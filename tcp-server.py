@@ -1,6 +1,9 @@
+import socket, sys, threading, signal, os
+from threading import RLock
 
-import socket, sys
-import threading
+bind_address    = ''
+bind_port       = 45080
+
 
 bind_ip = '127.0.0.1'
 bind_port = 9993
@@ -12,14 +15,38 @@ server.listen(5)  # max backlog of connections
 print ('Listening on {}:{}'.format(bind_ip, bind_port))
 
 
-def handle_client_connection(client_socket):
-    msg_from_client = client_socket.recv(1024)
-    request = msg_from_client.decode()
-    print ('Received {}'.format(request))
-    msg_to_client='ACK'.encode()
-    print (msg_to_client)
-    client_socket.send(msg_to_client)
-    client_socket.close()
+def handle_client_connection(client_sock):
+    signal.pthread_sigmask(signal.SIG_SETMASK, [signal.SIGINT, signal.SIGKILL])
+    try:
+        with lock:
+            connections.append(client_sock)
+        while True:
+            request=''
+            #soma strings ate ter mensagem completa
+            while(request=='' or request[-1]!='\n'):
+                msg_from_client = client_sock.recv(1024)
+                if(not msg_from_client):
+                    raise socket.timeout()
+                request += str(msg_from_client.decode())
+            with lock:
+                client_sock.send(process_input(request, client_sock).encode())
+    except socket.timeout:
+        with lock:
+            for i in users:
+                if(users[i][0]==client_sock):
+                    if(users[i][1]!=0):
+                        play(0,0,client_sock,2) #send user disconected signal to game handler
+                    del(users[i])
+                    break
+            for i in range(len(connections)):
+                if(connections[i]==client_sock):
+                    del(connections[i])
+                    break
+        client_sock.close()
+        print("Client disconected".format(client_sock))
+        exit(0)
+
+
 
 
 def main():
@@ -34,4 +61,7 @@ def main():
         print("Acepted connection from {}:{}".format(address[0],address[1]))
         client_handler=threading.Thread(target=handle_client_connection, args=(client_sock, ))
         client_handler.start()
+#----
 
+if(__name__ == '__main__'):
+    main()
