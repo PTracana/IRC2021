@@ -1,27 +1,56 @@
 import socket
 
-server_ip = '127.0.0.1'
-server_port = 9993
+import socket, signal, sys, select, os
 
-#hostname, sld, tld, port = 'www', 'integralist', 'co.uk', 80
-hostname, sld, tld, port = 'www', 'tecnico', 'ulisboa.pt', 80
-target = '{}.{}.{}'.format(hostname, sld, tld)
-print ('target', target)
+server_ip = [socket.gethostbyname("samuel.freetcp.com"), "127.0.0.1"]
+server_port = 45080
+server = -1
+MSG_SIZE = 1024
 
-# create an ipv4 (AF_INET) socket object using the tcp protocol (SOCK_STREAM)
+VLINE=chr(9474)
+username=''
+
+
+def exit_sig(sig=0, frame=0):
+    client.close()
+    exit(0)
+
+
+
+
+while(not 0<=server<len(server_ip)):
+    server = int(input("Select server:\n0: Remote Server\n1: Localhost\n"))
+
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# connect the client
-# client.connect((target, port))
-client.connect((server_ip, server_port))
-msg = 'GET /index.html HTTP/1.1\r\nHost: {}.{}\r\n\r\n'.format(sld, tld)
-msg_to_send = msg.encode()
+try:
+    client.connect((server_ip[server], server_port))
+except:
+    print("ERROR: Server {} is offline".format(server_ip[server]))
+    client.close()
+    exit(1)
 
-# send some data (in this case a HTTP GET request)
-#client.send('GET /index.html HTTP/1.1\r\nHost: {}.{}\r\n\r\n'.format(sld, tld))
-client.send(msg_to_send)
-
-# receive the response data (4096 is recommended buffer size)
-response = client.recv(4096)
-msg_from_client=response.decode()
-print (msg_from_client)
+signal.signal(signal.SIGINT, exit_sig)
+inputs = [client, sys.stdin]
+message=''
+print("COMMAND: ",  end='')
+sys.stdout.flush()
+while True:
+    ins, outs, exs = select.select(inputs, [], [])
+    for i in ins:
+        if(i==sys.stdin):
+            response=sys.stdin.readline()
+            client.sendto(response.encode(),(server_ip[server],server_port))
+        elif(i==client):
+            (server_msg, addr) = client.recvfrom(MSG_SIZE)
+            if(not server_msg):
+                exit_sig()
+            message+=str(server_msg.decode())
+            if(message[-1]!='\n'):
+                continue
+            message=message.split('\n')
+            for k in message:
+                process_input(k)
+            message=''
+            print("{}COMMAND: ".format(username), end='')
+            sys.stdout.flush()

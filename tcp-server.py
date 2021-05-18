@@ -3,16 +3,29 @@ from threading import RLock
 
 bind_address    = ''
 bind_port       = 45080
+server = 0
+connections=[]
+lock = RLock()
 
 
 bind_ip = '127.0.0.1'
 bind_port = 9993
+users ={}
+#user: [socketfd, status, [game]]
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((bind_ip, bind_port))
 server.listen(5)  # max backlog of connections
 
 print ('Listening on {}:{}'.format(bind_ip, bind_port))
+
+def exit_server(sig, frame):
+    print("\nExiting server recieved signal {}...".format(sig))
+    server.close()
+    for c in connections:
+        c.send("SERVER_OFF\n".encode())
+        c.close()
+    exit(0)
 
 
 def handle_client_connection(client_sock):
