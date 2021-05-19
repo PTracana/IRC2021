@@ -3,7 +3,7 @@ import socket
 import socket, signal, sys, select, os
 
 server_ip = [socket.gethostbyname("samuel.freetcp.com"), "127.0.0.1"]
-server_port = 45080
+server_port = 9993
 server = -1
 MSG_SIZE = 1024
 
