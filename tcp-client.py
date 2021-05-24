@@ -2,6 +2,7 @@ import socket, signal, sys, select, os
 
 server_ip = '127.0.0.1'
 server_port = 9993
+MAXMSG = 4096
 
 hostname, sld, tld, port = 'www', 'tecnico', 'ulisboa.pt', 80
 target = '{}.{}.{}'.format(hostname, sld, tld)
@@ -38,7 +39,7 @@ while True:
             response=sys.stdin.readline()
             client.sendto(response.encode(),(server_ip ,server_port))
         elif(i==client):
-            (server_msg, addr) = client.recvfrom(4096)
+            (server_msg, addr) = client.recvfrom(MAXMSG)
             if(not server_msg):
                 exit_sig()
             message+=str(server_msg.decode())
