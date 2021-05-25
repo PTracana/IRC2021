@@ -24,6 +24,7 @@ OK_REM_ACTIV = "1 Atividade Removida.\n"
 ERR_REGIST_LOC_INFO = "0 Registo de Local: falta de paramêtros.\n"
 ERR_REGIST_LOC_EXIST= "0 Registo de Local: o local já existe.\n"
 ERR_REGIST_LOC_NOINFO = "0 Registo de Local: sem paramêtros.\n"
+ERR_REGIST_LOC_MAXINFO = "0 Registo de Local: paramêtros a mais.\n"
 
 ERR_SALDO_NEXIST = "0 Consulta de Saldo: o Local não existe.\n"
 ERR_SALDO_TOMUCHINFO = "0 Consulta de Saldo: paramêtros a mais.\n"
@@ -35,17 +36,22 @@ ERR_CANCEL_LOC_INFO =  "0 Cancelamento de Registo: falta de paramêtros.\n"
 
 ERR_CR_ACTIV_NOINFO = "0 Criação de atividade:sem paramêtros.\n"
 ERR_CR_ACTIV_INFO  = "0 Criação de atividade:falta de paramêtros.\n"
+ERR_CR_ACTIV_MAXINFO = "0 Criação de atividade:paramêtros a mais.\n"
 ERR_CR_ACTIV_NEXIST = "0 Criação de atividade: local nao existe\n"
 ERR_CR_ACTIV_TYPE = "0 Criação de atividade: atividade do mesmo tipo já existe.\n"
 ERR_CR_ACTIV_LIMIT = "0 Criação de atividade: limite maximo de atividades atingido\n"
 
-ERR_MOD_ACTIV_NEXIST = "0 Modificação de atividade:  atividade não existe\n"
-ERR_MOD_ACTIV_INFO = "0 Modificação de atividade: falta de informação\n"
-ERR_MOD_ACTIV_ONGOING = "0 Modificação de atividade: atividade a decorrer\n"
+ERR_MOD_ACTIV_NEXIST = "0 Modificação de atividade:  atividade não existe.\n"
+ERR_MOD_ACTIV_INFO = "0 Modificação de atividade:falta de paramêtros.\n"
+ERR_MOD_ACTIV_ONGOING = "0 Modificação de atividade: atividade a decorrer.\n"
+ERR_MOD_ACTIV_NOINFO = "0 Modificação de atividade: sem paramêtros.\n"
+ERR_MOD_ACTIV_MAXINFO = "0 Modificação de atividade:paramêtros a mais.\n"
 
-ERR_REM_ACTIV_NEXIST = "0 Remoção de atividade: atividade não existente\n"
-ERR_REM_ACTIV_ONGOING =  "0 Remoção de atividade: Atividade a decorrer\n"
-
+ERR_REM_ACTIV_NEXIST = "0 Remoção de atividade: atividade não existente.\n"
+ERR_REM_ACTIV_ONGOING =  "0 Remoção de atividade: Atividade a decorrer.\n"
+ERR_REM_ACTIV_NOINFO = "0 Remoção de atividade: sem paramêtros.\n"
+ERR_REM_ACTIV_INFO = "0 Remoção de atividade: paramêtros em falta.\n"
+ERR_REM_ACTIV_MAXINFO = "0 Remoção de atividade: paramêtros a mais.\n"
 
 #funcao que recebe um signal e mata o servidor e todos os seus clientes
 def exit_server(sig=0, frame=0):
@@ -66,6 +72,9 @@ def registar(k):
 
     if len(k)<4:
         return ERR_REGIST_LOC_INFO
+
+    if len(k)<4:
+        return ERR_REGIST_LOC_MAXINFO
 
     if (type(k[1])!= int or type(k[2])!=int or type(k[3])!= int):
         return ERR_REGIST_LOC_INFO
@@ -172,6 +181,8 @@ def criarAtividade(k):
         return ERR_CR_ACTIV_NOINFO
     if(len(k)<7):
         return ERR_CR_ACTIV_INFO
+    if (len(k)>7):
+        return ERR_CR_ACTIV_MAXINFO
 
 
     f = open("activities.txt", "r") 
@@ -205,8 +216,75 @@ def criarAtividade(k):
     f.close()
     return OK_CR_ACTIV.format(str(a_id))
 
+def modificarAtividade(k):
+    counter = 0
+    temp = ''
+    old_line = ''
+
+    if len(k) == 0:
+        return ERR_MOD_ACTIV_NOINFO
+    if len(k) < 4 :
+        return ERR_MOD_ACTIV_INFO
+    if len(k) > 4 :
+        return ERR_MOD_ACTIV_MAXINFO
+    
+
+    f = open("activities.txt", "r")
+    for e in f:
+        checker = e.split(" ")
+        if checker[2] == k[0]:
+            counter +=1
+            old_line = e
+        else:
+            temp += e
+    f.close()
+
+    if counter == 0:
+        return ERR_MOD_ACTIV_NEXIST
 
 
+    new = old_line.split(" ")
+    old_line =''
+    new[4] = k[1]
+    new[6] = k[2]
+    new[7] = k[3] +"\n"
+    for e in new:
+        old_line += e + ' '
+
+    temp += old_line
+
+    f = open("activities.txt", "w")
+    f.write(temp)
+    f.close()
+    return OK_MOD_ACTIV
+
+
+def removerAtividade(k):
+    counter = 0
+    temp = ''
+    if (len(k)== 0):
+        return ERR_REM_ACTIV_NOINFO
+    if k[0] == '':
+        return ERR_REM_ACTIV_INFO
+    if (len(k)> 1):
+        return ERR_REM_ACTIV_MAXINFO
+
+    f = open("activities.txt", "r")
+    for e in f:
+        checker = e.split(" ")
+        if k[0] == checker[2]:
+            counter += 1
+        else:
+            temp += e
+    f.close()
+
+    if counter == 0:
+        return ERR_REM_ACTIV_NEXIST
+
+    f = open("activities.txt", "w")
+    f.write(temp)
+    f.close()
+    return OK_REM_ACTIV
 
 def process_input(k, client_sock):
     k = k.strip('\n').split(" ")
@@ -223,7 +301,13 @@ def process_input(k, client_sock):
     if(k[0] == "CRIAR_ATIVIDADE"):
         k.pop(0)
         return criarAtividade(k)
-    return "ran\n"
+    if(k[0] == "MODIFICAR_ATIVIDADE"):
+        k.pop(0)
+        return modificarAtividade(k)
+    if(k[0] == "REMOVER_ATIVIDADE"):
+        k.pop(0)
+        return removerAtividade(k)
+    return "COMANDO INVALIDO\n"
 
 
 def handle_client_connection(client_sock):
