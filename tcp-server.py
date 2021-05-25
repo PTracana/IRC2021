@@ -109,7 +109,7 @@ def consultar_saldo(k):
     for e in f:
         checker = e.strip('\n').split(" ")
         if checker[1] == k[0]:
-            saldo = checker[3]
+            saldo = checker[4]
             f.close()
             return OK_BALANCE.format(saldo)
     f.close()
