@@ -73,11 +73,9 @@ def registar(k):
     if len(k)<4:
         return ERR_REGIST_LOC_INFO
 
-    if len(k)<4:
+    if len(k)>4:
         return ERR_REGIST_LOC_MAXINFO
 
-    if (type(k[1])!= int or type(k[2])!=int or type(k[3])!= int):
-        return ERR_REGIST_LOC_INFO
 
     f = open("locals.txt", "r")
     for e in f:
@@ -247,11 +245,9 @@ def modificarAtividade(k):
     old_line =''
     new[4] = k[1]
     new[6] = k[2]
-    new[7] = k[3] +"\n"
-    for e in new:
-        old_line += e + ' '
-
-    temp += old_line
+    new[7] = k[3]
+    old_line = new[0]+" "+new[1]+" "+new[2]+" "+new[3]+" "+new[4]+" "+new[5]+" "+new[6]+" "+new[7]
+    temp += old_line 
 
     f = open("activities.txt", "w")
     f.write(temp)
