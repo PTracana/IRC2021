@@ -12,6 +12,11 @@ lock = RLock()
 MAX_MSG =1024
 MAX_ACTIV= 100
 
+
+#default messages
+OK_DEF = "Ok: "
+ERR_DEF = "ERROR: "
+
 #mensagens de OK
 OK_LOC_REGIST = "{} Local registado.\n"
 OK_BALANCE = "Saldo Atual : {}.\n"
@@ -37,9 +42,9 @@ ERR_CANCEL_LOC_INFO =  "0 Cancelamento de Registo: falta de paramêtros.\n"
 ERR_CR_ACTIV_NOINFO = "0 Criação de atividade:sem paramêtros.\n"
 ERR_CR_ACTIV_INFO  = "0 Criação de atividade:falta de paramêtros.\n"
 ERR_CR_ACTIV_MAXINFO = "0 Criação de atividade:paramêtros a mais.\n"
-ERR_CR_ACTIV_NEXIST = "0 Criação de atividade: local nao existe\n"
+ERR_CR_ACTIV_NEXIST = "0 Criação de atividade: local nao existe.\n"
 ERR_CR_ACTIV_TYPE = "0 Criação de atividade: atividade do mesmo tipo já existe.\n"
-ERR_CR_ACTIV_LIMIT = "0 Criação de atividade: limite maximo de atividades atingido\n"
+ERR_CR_ACTIV_LIMIT = "0 Criação de atividade: limite maximo de atividades atingido.\n"
 
 ERR_MOD_ACTIV_NEXIST = "0 Modificação de atividade:  atividade não existe.\n"
 ERR_MOD_ACTIV_INFO = "0 Modificação de atividade:falta de paramêtros.\n"
@@ -68,13 +73,13 @@ def registar(k):
     loc_id = 0
     output = ' '
     if len(k)== 0:
-        return ERR_REGIST_LOC_NOINFO
+        return ERR_DEF + ERR_REGIST_LOC_NOINFO
 
     if len(k)<4:
-        return ERR_REGIST_LOC_INFO
+        return ERR_DEF +  ERR_REGIST_LOC_INFO
 
     if len(k)>4:
-        return ERR_REGIST_LOC_MAXINFO
+        return ERR_DEF + ERR_REGIST_LOC_MAXINFO
 
 
     f = open("locals.txt", "r")
@@ -83,7 +88,7 @@ def registar(k):
         if loc_id  < int(checker[0]):
             loc_id = int(checker[0])
         if checker[1] == k[0]:
-            return ERR_REGIST_LOC_EXIST
+            return ERR_DEF + ERR_REGIST_LOC_EXIST
     f.close() 
 
     f = open("locals.txt", "a")
@@ -93,15 +98,15 @@ def registar(k):
     res = str(loc_id) + output+  '\n'
     f.write(res)
     f.close()
-    return OK_LOC_REGIST.format(str(loc_id))
+    return OK_DEF + OK_LOC_REGIST.format(str(loc_id))
 
 def consultar_saldo(k):
 
     if len(k) == 0:
-        return ERR_SALDO_NOINFO
+        return ERR_DEF + ERR_SALDO_NOINFO
 
     if len(k) > 1:
-        return ERR_SALDO_TOMUCHINFO
+        return ERR_DEF + ERR_SALDO_TOMUCHINFO
 
     f = open("locals.txt", "r")
     for e in f:
@@ -109,9 +114,9 @@ def consultar_saldo(k):
         if checker[1] == k[0]:
             saldo = checker[4]
             f.close()
-            return OK_BALANCE.format(saldo)
+            return OK_DEF + OK_BALANCE.format(saldo)
     f.close()
-    return ERR_SALDO_NEXIST
+    return ERR_DEF + ERR_SALDO_NEXIST
 
 def cancelar_registo(k):
     temp_loc= ''
@@ -121,10 +126,10 @@ def cancelar_registo(k):
     aviso = ''
 
     if len(k) == 0:
-        return ERR_CANCEL_LOC_NOINFO
+        return ERR_DEF + ERR_CANCEL_LOC_NOINFO
 
     if k[0] == '':
-        return ERR_CANCEL_LOC_INFO
+        return ERR_DEF + ERR_CANCEL_LOC_INFO
 
 
     f = open("locals.txt", "r")
@@ -136,7 +141,7 @@ def cancelar_registo(k):
            temp_loc += e 
     f.close()
     if counter == 0:
-        return ERR_CANCEL_LOC_NEXIST
+        return ERR_DEF + ERR_CANCEL_LOC_NEXIST
 
     a = open("avisos.txt", 'a')
     c = open("clients.txt", "r")
@@ -166,7 +171,7 @@ def cancelar_registo(k):
     r = open("activities.txt","w")
     r.write(temp_act)
     r.close()
-    return OK_CANCEL_LOC
+    return OK_DEF +OK_CANCEL_LOC
 
 def criarAtividade(k):
     global MAX_ACTIV
@@ -176,11 +181,11 @@ def criarAtividade(k):
     exist_counter = 0
 
     if(len(k)==0):
-        return ERR_CR_ACTIV_NOINFO
+        return ERR_DEF + ERR_CR_ACTIV_NOINFO
     if(len(k)<7):
         return ERR_CR_ACTIV_INFO
     if (len(k)>7):
-        return ERR_CR_ACTIV_MAXINFO
+        return ERR_DEF + ERR_CR_ACTIV_MAXINFO
 
 
     f = open("activities.txt", "r") 
@@ -201,9 +206,9 @@ def criarAtividade(k):
     f.close()
 
     if exist_counter == 0:
-        return ERR_CR_ACTIV_NEXIST
+        return ERR_DEF + ERR_CR_ACTIV_NEXIST
     if a_id == MAX_ACTIV:
-        return ERR_CR_ACTIV_LIMIT
+        return ERR_DEF + ERR_CR_ACTIV_LIMIT
     
     f = open("activities.txt", "a")
     for e in k:
@@ -212,7 +217,7 @@ def criarAtividade(k):
     res = str(a_id)+ ' ' + output+  '\n'
     f.write(res)
     f.close()
-    return OK_CR_ACTIV.format(str(a_id))
+    return OK_DEF +OK_CR_ACTIV.format(str(a_id))
 
 def modificarAtividade(k):
     counter = 0
@@ -220,17 +225,17 @@ def modificarAtividade(k):
     old_line = ''
 
     if len(k) == 0:
-        return ERR_MOD_ACTIV_NOINFO
+        return ERR_DEF + ERR_MOD_ACTIV_NOINFO
     if len(k) < 4 :
-        return ERR_MOD_ACTIV_INFO
+        return ERR_DEF + ERR_MOD_ACTIV_INFO
     if len(k) > 4 :
-        return ERR_MOD_ACTIV_MAXINFO
+        return ERR_DEF + ERR_MOD_ACTIV_MAXINFO
     
 
     f = open("activities.txt", "r")
     for e in f:
         checker = e.split(" ")
-        if checker[2] == k[0]:
+        if checker[0] == k[0]:
             counter +=1
             old_line = e
         else:
@@ -238,7 +243,7 @@ def modificarAtividade(k):
     f.close()
 
     if counter == 0:
-        return ERR_MOD_ACTIV_NEXIST
+        return ERR_DEF + ERR_MOD_ACTIV_NEXIST
 
 
     new = old_line.split(" ")
@@ -252,35 +257,35 @@ def modificarAtividade(k):
     f = open("activities.txt", "w")
     f.write(temp)
     f.close()
-    return OK_MOD_ACTIV
+    return OK_DEF +OK_MOD_ACTIV
 
 
 def removerAtividade(k):
     counter = 0
     temp = ''
     if (len(k)== 0):
-        return ERR_REM_ACTIV_NOINFO
+        return ERR_DEF + ERR_REM_ACTIV_NOINFO
     if k[0] == '':
-        return ERR_REM_ACTIV_INFO
+        return ERR_DEF + ERR_REM_ACTIV_INFO
     if (len(k)> 1):
-        return ERR_REM_ACTIV_MAXINFO
+        return ERR_DEF + ERR_REM_ACTIV_MAXINFO
 
     f = open("activities.txt", "r")
     for e in f:
         checker = e.split(" ")
-        if k[0] == checker[2]:
+        if k[0] == checker[0]:
             counter += 1
         else:
             temp += e
     f.close()
 
     if counter == 0:
-        return ERR_REM_ACTIV_NEXIST
+        return ERR_DEF + ERR_REM_ACTIV_NEXIST
 
     f = open("activities.txt", "w")
     f.write(temp)
     f.close()
-    return OK_REM_ACTIV
+    return OK_DEF + OK_REM_ACTIV
 
 def process_input(k, client_sock):
     k = k.strip('\n').split(" ")
@@ -303,7 +308,7 @@ def process_input(k, client_sock):
     if(k[0] == "REMOVER_ATIVIDADE"):
         k.pop(0)
         return removerAtividade(k)
-    return "COMANDO INVALIDO\n"
+    return ERR_DEF + "COMANDO INVALIDO\n"
 
 
 def handle_client_connection(client_sock):
